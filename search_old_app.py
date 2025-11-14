@@ -9,13 +9,43 @@ st.set_page_config(
     layout="wide"
 )
 
-# Mobile-friendly padding and font adjustments
+# -----------------------------------
+# MOBILE FRIENDLY CSS FIXES
+# -----------------------------------
 st.markdown("""
-    <style>
-        .block-container { padding-top: 1rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-        input[type="text"] { font-size: 1.1rem; }
-        button[kind="secondary"] { width: 100%; }
-    </style>
+<style>
+
+.block-container { 
+    padding-top: 1rem !important; 
+    padding-left: 0.5rem !important; 
+    padding-right: 0.5rem !important; 
+}
+
+input[type="text"] { 
+    font-size: 1.1rem !important; 
+}
+
+/* Make Streamlit DataFrame scrollable on mobile */
+.stDataFrame { 
+    overflow-x: auto !important; 
+}
+
+/* Wrap long Tamil text instead of cutting it */
+.dataframe td, .dataframe th {
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 1.1rem !important;
+    line-height: 1.4rem !important;
+}
+
+/* Force wider table on small screens */
+@media (max-width: 600px) {
+  .dataframe {
+      min-width: 700px !important;
+  }
+}
+
+</style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------
@@ -88,5 +118,6 @@ if st.button("🔍 தேடு (Search)"):
     if not results.empty:
         st.success(f"✔ {len(results)} பதிவுகள் கிடைத்தன (record(s) found).")
         st.dataframe(results, use_container_width=True)
+
     else:
         st.error("❌ பொருந்தும் பதிவுகள் இல்லை (No matching records found).")
