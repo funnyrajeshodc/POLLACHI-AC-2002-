@@ -4,62 +4,89 @@ import pandas as pd
 # -----------------------------------
 # PAGE SETTINGS
 # -----------------------------------
-st.set_page_config(page_title="123 Pollachi AC - SIR 2002 Search", layout="wide")
+st.set_page_config(
+    page_title="123 Pollachi AC - SIR 2002 Search",
+    layout="wide"
+)
+
+# Mobile-friendly padding and font adjustments
+st.markdown("""
+    <style>
+        .block-container { padding-top: 1rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+        input[type="text"] { font-size: 1.1rem; }
+        button[kind="secondary"] { width: 100%; }
+    </style>
+""", unsafe_allow_html=True)
 
 # -----------------------------------
-# PAGE TITLE
+# PAGE TITLES
 # -----------------------------------
-st.title("🗳️ 123 POLLACHI ASSEMBLY CONSTITUENCY")
-st.header("🔍 SEARCH ELECTOR DETAILS - 2002")
+st.title("🗳️ 123 பொள்ளாச்சி சட்டமன்ற தொகுதி (Pollachi Assembly Constituency)")
+st.subheader("🔍 வாக்காளர் விவரம் - 2002 (Voter Details - 2002)")
 
 # -----------------------------------
-# LOAD EXCEL DATA
+# LOAD DATA
 # -----------------------------------
-@st.cache_data
+@st.cache_data(show_spinner=True)
 def load_data():
-    df = pd.read_excel("old_data.xlsx")
+    try:
+        df = pd.read_excel("old_data.xlsx")
+    except Exception as e:
+        st.error(f"Excel கோப்பை ஏற்ற முடியவில்லை (Failed to load Excel file): {e}")
+        return pd.DataFrame()
 
-    # No uppercase — keep Tamil exactly as stored
     df["FM_NAME_V2"] = df["FM_NAME_V2"].astype(str).str.strip()
     df["RLN_FM_NM_V2"] = df["RLN_FM_NM_V2"].astype(str).str.strip()
 
     return df
 
 df = load_data()
+if df.empty:
+    st.stop()
 
 # -----------------------------------
-# SEARCH INPUTS (TAMIL)
+# INPUT SECTION
 # -----------------------------------
-st.subheader("விவரங்களை உள்ளிடவும் (Enter Details)")
+st.markdown("### 📝 விவரங்களை உள்ளிடவும் (Enter Details)")
 
-name_input = st.text_input("பெயர் (NAME) – Tamil Only")
-rname_input = st.text_input("உறவு பெயர் (RELATION NAME) – Tamil Only")
+voter_name = st.text_input(
+    "வாக்காளர் பெயர் (Voter's Name) – தமிழ் மட்டும் (Tamil Only)",
+    placeholder="உதா: ராமு (Example: Ramu)"
+)
+
+relation_name = st.text_input(
+    "தந்தை / கணவர் பெயர் (Father's / Husband's Name) – தமிழ் மட்டும் (Tamil Only)",
+    placeholder="உதா: முருகேசன் (Example: Murugesan)"
+)
 
 # -----------------------------------
-# SEARCH BUTTON
+# SEARCH OPERATION
 # -----------------------------------
-if st.button("தேடு (SEARCH)"):
+if st.button("🔍 தேடு (Search)"):
 
-    name_part = name_input.strip()
-    rname_part = rname_input.strip()
+    name_part = voter_name.strip()
+    rname_part = relation_name.strip()
 
     if not name_part and not rname_part:
-        st.warning("⚠️ Please enter NAME or RELATION NAME in Tamil.")
+        st.warning("⚠️ வாக்காளர் பெயர் அல்லது தந்தை/கணவர் பெயரை உள்ளிடவும் (Please enter either Voter's Name or Father's/Husband's Name).")
         st.stop()
 
-    # Start with full data
     results = df.copy()
 
-    # Partial Tamil matching
+    def safe_contains(series, value):
+        return series.str.contains(value, case=False, na=False, regex=False)
+
     if name_part:
-        results = results[results["FM_NAME_V2"].str.contains(name_part, na=False)]
+        results = results[safe_contains(results["FM_NAME_V2"], name_part)]
 
     if rname_part:
-        results = results[results["RLN_FM_NM_V2"].str.contains(rname_part, na=False)]
+        results = results[safe_contains(results["RLN_FM_NM_V2"], rname_part)]
 
-    # Display final result
+    # -----------------------------------
+    # RESULTS
+    # -----------------------------------
     if not results.empty:
-        st.success(f"✔ {len(results)} matching record(s) found.")
+        st.success(f"✔ {len(results)} பதிவுகள் கிடைத்தன (record(s) found).")
         st.dataframe(results, use_container_width=True)
     else:
-        st.error("❌ No records found for the given Tamil name(s).")
+        st.error("❌ பொருந்தும் பதிவுகள் இல்லை (No matching records found).")
