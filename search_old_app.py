@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 # -----------------------------------
-# MOBILE-FRIENDLY CSS FIXES
+# MOBILE FRIENDLY CSS FIXES
 # -----------------------------------
 st.markdown("""
 <style>
@@ -25,22 +25,23 @@ input[type="text"] {
     font-size: 1.1rem !important; 
 }
 
-/* Scrollable dataframe */
+/* Make Streamlit DataFrame scrollable on mobile */
 .stDataFrame { 
-    overflow-x: auto !important;
+    overflow-x: auto !important; 
 }
 
-/* Wrap long text */
+/* Wrap long Tamil text instead of cutting it */
 .dataframe td, .dataframe th {
     white-space: normal !important;
     word-break: break-word !important;
-    line-height: 1.3rem !important;
+    font-size: 1.1rem !important;
+    line-height: 1.4rem !important;
 }
 
 /* Force wider table on small screens */
 @media (max-width: 600px) {
-  .stDataFrame > div {
-      min-width: 1300px !important;
+  .dataframe {
+      min-width: 700px !important;
   }
 }
 
@@ -116,28 +117,7 @@ if st.button("🔍 தேடு (Search)"):
     # -----------------------------------
     if not results.empty:
         st.success(f"✔ {len(results)} பதிவுகள் கிடைத்தன (record(s) found).")
-
-        # -------- Show all columns except the long Tamil column --------
-        long_col = "2025 Part name"
-        short_cols = [c for c in results.columns if c != long_col]
-
-        st.markdown("### 📄 முடிவுகள் (Results Table)")
-        st.dataframe(results[short_cols], use_container_width=True)
-
-        # -------- Show long column separately for full visibility --------
-        if long_col in results.columns:
-            st.markdown("### 📌 2025 Part Name (Full Text — Mobile Friendly)")
-
-            for i, row in results.iterrows():
-                part = row[long_col]
-                if pd.isna(part):
-                    part = "—"
-
-                st.markdown(f"""
-                **➡️ {row['FM_NAME_V2']}**  
-                {part}
-                """)
-                st.write("---")
+        st.dataframe(results, use_container_width=True)
 
     else:
         st.error("❌ பொருந்தும் பதிவுகள் இல்லை (No matching records found).")
